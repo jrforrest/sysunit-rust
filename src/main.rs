@@ -14,7 +14,7 @@ impl<'a> Adapter<'a> {
         Adapter{name: name, command: command}
     }
 
-    pub fn run(&self, instance: &Instance, operation: Operation) {
+    pub fn run(&self, instance: &Instance, operation: Operation) -> Result<(), ()> {
         let mut cmd = Command::new(self.command)
            .stdout(Stdio::piped())
            .stdin(Stdio::piped())
@@ -30,14 +30,39 @@ impl<'a> Adapter<'a> {
         let output = cmd.wait_with_output().expect("Failed to read stdout from adapter");
 
         println!("{}", String::from_utf8_lossy(&output.stdout));
+
+        match output.status.success() {
+            true => Ok(()),
+            false => Err(())
+        }
+    }
+}
+
+struct Host<'a> {
+    adapter: Adapter<'a>,
+}
+
+impl<'a> Host<'a> {
+    pub fn new() -> Host<'a> {
+        let adapter = Adapter::new("local", "/bin/sh");
+        Host{adapter: adapter}
+    }
+
+    pub fn apply(&self, instance: &Instance) {
+        match self.adapter.run(&instance, Operation::Check) {
+            Err(()) => {
+                self.adapter.run(&instance, Operation::Apply);
+            }
+            Ok(()) => (),
+        };
     }
 }
 
 fn main() {
-    let definition = Definition::new("blarp", "echo hi", "echo bye");
-    let adapter = Adapter::new("local", "/bin/sh");
+    let definition = Definition::new("blarp", "echo hi && false", "echo bye");
+    let host = Host::new();
 
     let instance = definition.get_instance();
 
-    adapter.run(&instance, Operation::Check);
+    host.apply(&instance)
 }
