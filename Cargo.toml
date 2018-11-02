@@ -1,0 +1,6 @@
+[package]
+name = "sysunit-rust"
+version = "0.1.0"
+authors = ["Jack Forrest <jack@jrforrest.net>"]
+
+[dependencies]
