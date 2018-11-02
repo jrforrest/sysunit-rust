@@ -1,16 +1,8 @@
 use std::process::{Command, Stdio};
+mod unit;
+
 use std::io::Write;
-
-struct UnitDefinition<'a> {
-    name: &'a str,
-    check: &'a str
-}
-
-impl<'a> UnitDefinition<'a> {
-    pub fn new(name: &'a str, check: &'a str) -> UnitDefinition<'a> {
-        UnitDefinition{name: name, check: check}
-    }
-}
+use unit::{Definition, Instance, Operation};
 
 struct Adapter<'a> {
     name: &'a str,
@@ -22,7 +14,7 @@ impl<'a> Adapter<'a> {
         Adapter{name: name, command: command}
     }
 
-    pub fn run(&self, definition: &UnitDefinition) {
+    pub fn run(&self, instance: &Instance, operation: Operation) {
         let mut cmd = Command::new(self.command)
            .stdout(Stdio::piped())
            .stdin(Stdio::piped())
@@ -30,8 +22,9 @@ impl<'a> Adapter<'a> {
            .expect("Failed to start adapter command");
 
         {
-            let mut stdin = cmd.stdin.as_mut().expect("Failed to open stdin for adapter command");
-            stdin.write_all(definition.check.as_bytes()).expect("Failed to write command to adapter");
+            let script = instance.command_for(operation);
+            let stdin = cmd.stdin.as_mut().expect("Failed to open stdin for adapter command");
+            stdin.write_all(script.as_bytes()).expect("Failed to write command to adapter");
         }
 
         let output = cmd.wait_with_output().expect("Failed to read stdout from adapter");
@@ -41,8 +34,10 @@ impl<'a> Adapter<'a> {
 }
 
 fn main() {
-    let definition = UnitDefinition::new("blarp", "echo hi");
+    let definition = Definition::new("blarp", "echo hi", "echo bye");
     let adapter = Adapter::new("local", "/bin/sh");
 
-    adapter.run(&definition);
+    let instance = definition.get_instance();
+
+    adapter.run(&instance, Operation::Check);
 }
