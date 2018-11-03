@@ -48,17 +48,17 @@ impl<'a> Host<'a> {
         Host{adapter: adapter}
     }
 
-    pub fn check(&self, instance: &Instance) {
-        self.adapter.run(&instance, Operation::Check);
+    pub fn check(&self, instance: &Instance) -> Result<(), ()> {
+        self.adapter.run(&instance, Operation::Check)
     }
 
-    pub fn apply(&self, instance: &Instance) {
+    pub fn apply(&self, instance: &Instance) -> Result<(), ()> {
         match self.adapter.run(&instance, Operation::Check) {
             Err(()) => {
-                self.adapter.run(&instance, Operation::Apply);
+                self.adapter.run(&instance, Operation::Apply)
             }
-            Ok(()) => (),
-        };
+            Ok(()) => Ok(()),
+        }
     }
 }
 
@@ -72,17 +72,17 @@ impl<'a> Executor<'a> {
         Executor{instance: instance, host: host}
     }
 
-    pub fn perform(&self, operation: Operation) {
+    pub fn perform(&self, operation: Operation) -> Result<(), ()>{
         for dep in self.instance.iterate_dependencies() {
             let executor = Executor::new(self.host, dep);
 
-            executor.perform(operation);
+            executor.perform(operation)?;
         }
 
         match operation {
             Operation::Check => self.host.check(&self.instance),
             Operation::Apply => self.host.apply(&self.instance),
-        };
+        }
     }
 }
 
@@ -98,5 +98,5 @@ fn main() {
     let host = Host::new();
 
     let executor = Executor::new(&host, &instance);
-    executor.perform(Operation::Apply)
+    executor.perform(Operation::Apply).expect("failed to apply");
 }
