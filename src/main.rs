@@ -48,6 +48,10 @@ impl<'a> Host<'a> {
         Host{adapter: adapter}
     }
 
+    pub fn check(&self, instance: &Instance) {
+        self.adapter.run(&instance, Operation::Check);
+    }
+
     pub fn apply(&self, instance: &Instance) {
         match self.adapter.run(&instance, Operation::Check) {
             Err(()) => {
@@ -58,11 +62,41 @@ impl<'a> Host<'a> {
     }
 }
 
+struct Executor<'a> {
+    instance: &'a Instance<'a>,
+    host: &'a Host<'a>
+}
+
+impl<'a> Executor<'a> {
+    pub fn new(host: &'a Host<'a>, instance: &'a Instance<'a>) -> Executor<'a> {
+        Executor{instance: instance, host: host}
+    }
+
+    pub fn perform(&self, operation: Operation) {
+        for dep in self.instance.iterate_dependencies() {
+            let executor = Executor::new(self.host, dep);
+
+            executor.perform(operation);
+        }
+
+        match operation {
+            Operation::Check => self.host.check(&self.instance),
+            Operation::Apply => self.host.apply(&self.instance),
+        };
+    }
+}
+
 fn main() {
-    let definition = Definition::new("blarp", "echo hi && false", "echo bye");
-    let host = Host::new();
+    let child_definition = Definition::new("harp", "echo checking child", "false");
+    let child_instance = child_definition.get_instance();
+
+    let mut definition = Definition::new("blarp", "echo hi && false", "echo bye");
+    definition.depends_on(child_instance);
 
     let instance = definition.get_instance();
 
-    host.apply(&instance)
+    let host = Host::new();
+
+    let executor = Executor::new(&host, &instance);
+    executor.perform(Operation::Apply)
 }
