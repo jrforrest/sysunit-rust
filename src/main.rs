@@ -1,8 +1,15 @@
+#[macro_use]
+extern crate serde_derive;
+extern crate glob;
+extern crate serde_yaml;
+
 use std::process::{Command, Stdio};
 mod unit;
+mod loader;
 
 use std::io::Write;
-use unit::{Definition, Instance, Operation};
+use unit::{Instance, Operation};
+use loader::Loader;
 
 struct Adapter<'a> {
     name: &'a str,
@@ -49,7 +56,7 @@ impl<'a> Host<'a> {
     }
 
     pub fn check(&self, instance: &Instance) -> Result<(), ()> {
-        self.adapter.run(&instance, Operation::Check)
+       self.adapter.run(&instance, Operation::Check)
     }
 
     pub fn apply(&self, instance: &Instance) -> Result<(), ()> {
@@ -87,16 +94,14 @@ impl<'a> Executor<'a> {
 }
 
 fn main() {
-    let child_definition = Definition::new("harp", "echo checking child", "false");
-    let child_instance = child_definition.get_instance();
+    let loader = Loader::new();
+    loader.load("./units");
 
-    let mut definition = Definition::new("blarp", "echo hi && false", "echo bye");
-    definition.depends_on(child_instance);
-
+    let definition = loader.find("yup");
     let instance = definition.get_instance();
 
     let host = Host::new();
-
     let executor = Executor::new(&host, &instance);
+
     executor.perform(Operation::Apply).expect("failed to apply");
 }

@@ -1,0 +1,3 @@
+name: yup'
+check: echo checking
+apply: echo applying
