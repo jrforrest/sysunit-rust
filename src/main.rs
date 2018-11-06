@@ -94,7 +94,7 @@ impl<'a> Executor<'a> {
 }
 
 fn main() {
-    let loader = Loader::new();
+    let mut loader = Loader::new();
     loader.load("./units");
 
     let definition = loader.find("yup");

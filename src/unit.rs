@@ -4,9 +4,9 @@ use std::slice;
 pub enum Operation {Check, Apply}
 
 pub struct Definition<'a> {
-    pub name: &'a str,
-    pub check: &'a str,
-    pub apply: &'a str,
+    pub name: String,
+    pub check: String,
+    pub apply: String,
 
     dependencies: Vec<Instance<'a>>,
 }
@@ -16,8 +16,13 @@ pub struct Instance<'a> {
 }
 
 impl<'a> Definition<'a> {
-    pub fn new(name: &'a str, check: &'a str, apply: &'a str) -> Definition<'a> {
-        Definition{name: name, check: check, apply: apply, dependencies: Vec::new()}
+    pub fn new<'b>(name: &'b str, check: &'b str, apply: &'b str) -> Definition<'a> {
+        Definition{
+            name: String::from(name),
+            check: String::from(check),
+            apply: String::from(apply),
+            dependencies: Vec::new()
+        }
     }
 
     pub fn get_instance(&self) -> Instance {
@@ -38,10 +43,10 @@ impl<'a> Instance<'a> {
         Instance{definition: definition}
     }
 
-    pub fn command_for(&self, operation: Operation) -> &'a str {
+    pub fn command_for(&self, operation: Operation) -> &'a String {
         match operation {
-            Operation::Apply => self.definition.apply,
-            Operation::Check => self.definition.check,
+            Operation::Apply => &self.definition.apply,
+            Operation::Check => &self.definition.check,
         }
     }
 
