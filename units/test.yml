@@ -1,2 +1,3 @@
 name: yup
 check: echo checking && false
+apply: echo hi
