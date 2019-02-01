@@ -53,5 +53,6 @@ impl<'a> Loader<'a> {
 struct DeserializedUnit {
     name: String,
     check: String,
-    apply: String
+    apply: String,
+    deps: Option<Vec<String>>
 }

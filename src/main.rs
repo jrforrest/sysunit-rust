@@ -8,18 +8,21 @@ mod loader;
 mod adapter;
 mod executor;
 mod host;
+mod instantiator;
 
-use unit::{Instance, Operation};
+use unit::Operation;
 use loader::Loader;
 use host::Host;
 use executor::Executor;
+use instantiator::Instantiator;
 
 fn main() {
     let mut loader = Loader::new();
     loader.load("./units");
 
-    let definition = loader.find("yup");
-    let instance = definition.get_instance();
+    let instantiator = Instantiator::new(&loader);
+
+    let instance = instantiator.instantiate("yup");
 
     let host = Host::new();
     let executor = Executor::new(&host, &instance);
