@@ -43,6 +43,10 @@ impl<'a> Instance<'a> {
         Instance{definition: definition}
     }
 
+    pub fn get_name(&self) -> &String {
+        &self.definition.name
+    }
+
     pub fn command_for(&self, operation: Operation) -> &'a String {
         match operation {
             Operation::Apply => &self.definition.apply,

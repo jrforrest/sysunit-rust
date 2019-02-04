@@ -20,8 +20,7 @@ fn main() {
     let mut loader = Loader::new();
     loader.load("./units");
 
-    let instantiator = Instantiator::new(&loader);
-
+    let mut instantiator = Instantiator::new(&loader);
     let instance = instantiator.instantiate("yup");
 
     let host = Host::new();
