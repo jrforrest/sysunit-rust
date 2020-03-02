@@ -1,0 +1,6 @@
+#!/bin/sh
+
+case $1 in
+  apply) echo "dir unit my dude!!";;
+  deps) echo hi;;
+esac
