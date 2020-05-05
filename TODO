@@ -1,6 +1,34 @@
 FEATURES
 - Apply should only apply if check does not report presence
   (?) What indicates presence here?  "applied/incomplete/missing" strings in STDOUT of unit?
+    - How about just "ok" for starters if its present, any other output means nothing is there
+
 - Better reporting UI
   - --report=full includes STDOUT/STDIN from subprocesses in output
   - --report=min (default) does not include STDOUT/STDIN
+
+- Test execution for directory units
+  - Allow directory units to provide a `./test` executable which can
+    assert that the unit has altered system state as expected
+
+- Adapters for specifying remote targets
+  - Runing with something like --target=ssh://root@git.jackforrest.codes should
+    allow managing remote systems with units located on the origin machine.
+
+- Manifest Units
+  - Units that only have dependencies can be expressed in a .toml file
+
+- Unit Docs
+  - unit.toml in 
+  - Something like a `meta` operation should recieve .toml output
+    from units that will be used to produce structured documentation
+    for that unit
+
+- .toml for dependencies
+  - This should be a decent minmal language that'll be much easier
+    to output from simple shell scripts and such than JSON, but will
+    allow more elaborate parameters with structured and typed data
+
+- .toml arguments
+  - We can probably provide a full .toml via some file descriptor that
+    units can choose to open and read if they wish to receive typed data
