@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 clap = "2.33.0"
 rust-crypto = "0.2.36"
+colored = "1.9"
+unicode-truncate = "0.1.1"

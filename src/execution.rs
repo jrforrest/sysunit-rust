@@ -14,6 +14,12 @@ pub struct Execution {
     pub stderr: String,
 }
 
+impl Execution {
+    pub fn success(&self) -> bool {
+        self.exit_code == 0
+    }
+}
+
 pub fn execute(unit: &Instance, operation: &str) -> Result<Execution, Error> {
     let definition = unit.definition_rc.clone();
     let mut command = match &definition.definition_type {
