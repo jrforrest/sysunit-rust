@@ -1,0 +1,6 @@
+FEATURES
+- Apply should only apply if check does not report presence
+  (?) What indicates presence here?  "applied/incomplete/missing" strings in STDOUT of unit?
+- Better reporting UI
+  - --report=full includes STDOUT/STDIN from subprocesses in output
+  - --report=min (default) does not include STDOUT/STDIN
