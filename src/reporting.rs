@@ -20,12 +20,18 @@ pub fn report_execution(execution: &Execution, mode: Mode) {
             format!("\n{}\n{}",
                 prefix_lines(&execution.stdout, "1>"),
                 prefix_lines(&execution.stderr, "2>")),
-        Mode::Minimal =>
-            format!(" {}", execution.stdout.unicode_truncate(40).0.trim()),
+        Mode::Minimal => {
+            let first_line = match execution.stdout.lines().into_iter().nth(0) {
+                Some(s) => s,
+                None => ""
+            };
+            format!(" {}", first_line.unicode_truncate(40).0.trim())
+        }
     };
 
     println!("[{}]{}", unit_name_colored, output_reporting)
 }
+
 pub fn prefix_lines(output: &str, prefix: &str) -> String {
     let mut output_string = String::new();
 
