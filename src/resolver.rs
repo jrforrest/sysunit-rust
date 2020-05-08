@@ -2,24 +2,26 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::unit::{Instance, RunState, ArgSet, InstanceId};
-use crate::execution::execute;
 use crate::error::Error;
+use crate::execution::Target;
 
 mod instance_cache;
 mod loader;
 
 use self::instance_cache::InstanceCache;
 
-pub struct Resolver {
+pub struct Resolver <'a> {
     pub ordered_instances: Vec<Rc<RefCell<Instance>>>,
     instance_cache: InstanceCache,
+    target: &'a Target,
 }
 
-impl Resolver {
-    pub fn new() -> Resolver {
+impl <'a> Resolver <'a> {
+    pub fn new(target: &'a Target) -> Resolver<'a> {
         let instance_cache = InstanceCache::new();
 
         Resolver {
+            target: target,
             instance_cache: instance_cache,
             ordered_instances: Vec::new(),
         }
@@ -64,7 +66,7 @@ impl Resolver {
     }
 
     fn get_deps(&mut self, instance: &Instance) -> Result<Vec<Rc<RefCell<Instance>>>, Error> {
-        let execution_result = execute(instance, "deps")?;
+        let execution_result = self.target.execute(instance, "deps")?;
         let definition = Rc::clone(&instance.definition_rc);
 
         if execution_result.exit_code != 0 {

@@ -27,11 +27,21 @@ fn main() {
             .takes_value(true)
             .possible_values(&["min", "full"])
         )
+        .arg(Arg::with_name("adapter")
+            .short("a")
+            .long("adapter")
+            .value_name("ADAPTER_NAME")
+            .help("specifies the adapter with which to execute")
+            .takes_value(true)
+            .possible_values(&["local"])
+            .required(false)
+        )
         .get_matches();
 
     let unit_name = matches.value_of("unit").unwrap();
     let operation = matches.value_of("operation").unwrap();
     let arg_str = matches.value_of("params").unwrap_or("");
+    let adapter_name = matches.value_of("adapter").unwrap_or("local");
 
     let reporting_mode_value = 
         matches.value_of("reporting-mode").unwrap_or("min");
@@ -42,7 +52,7 @@ fn main() {
         _ => panic!("Impossible reporting-mode: {}", reporting_mode_value)
     };
 
-    match run(unit_name, operation, arg_str, reporting_mode) {
+    match run(unit_name, operation, arg_str, adapter_name, reporting_mode) {
         Ok(_) => exit(0),
         Err(e) => {
             println!("{}", e.msg);

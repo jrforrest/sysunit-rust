@@ -1,11 +1,9 @@
-use crate::unit::{Instance, DefinitionType};
+use crate::unit::{Instance};
 use crate::error::Error;
 
-use std::process::Command;
-use std::process::Stdio;
-use std::io::Read;
-use std::fs;
-use std::path::Path;
+mod local;
+
+use self::local::Local;
 
 pub struct Execution {
     pub unit_name: String,
@@ -20,77 +18,63 @@ impl Execution {
     }
 }
 
-pub fn execute(unit: &Instance, operation: &str) -> Result<Execution, Error> {
-    let definition = unit.definition_rc.clone();
-    let mut command = match &definition.definition_type {
-        DefinitionType::Executable => Command::new(&definition.path),
-        DefinitionType::Directory => {
-            let path = Path::new(&definition.path);
-            let executable_path = path.join(Path::new("unit"));
-            let executable_path_str = executable_path.to_str().expect("Could not parse UTF8 path");
-            let canon = fs::canonicalize(&executable_path_str).unwrap();
-            let mut command = Command::new(&canon.to_str().unwrap());
+pub type ExecutionResult = Result<Execution, Error>;
 
-            command.current_dir(&definition.path);
+pub trait Executor {
+    fn execute(&self, unit: &Instance, operation: Operation) -> ExecutionResult;
+}
 
-            command
+#[derive(Clone, Copy)]
+pub enum Operation {
+    Check,
+    Apply,
+    Rollback,
+    Deps
+}
+
+impl Operation {
+    pub fn from_str(operation_name: &str) -> Result<Operation, Error> {
+        match operation_name {
+            "check" => Ok(Operation::Check),
+            "apply" => Ok(Operation::Apply),
+            "rollback" => Ok(Operation::Rollback),
+            "deps" => Ok(Operation::Deps),
+            _ => {
+                let err_string = format!("Unkown operation {}", operation_name);
+                Err(Error::new(err_string))
+            }
         }
-    };
+    }
 
-    let env_iter = unit.id.args.vec.iter().map(|arg|
-        (arg.name.clone(), arg.value.clone())
-    );
-
-    command
-        .arg(operation)
-        .envs(env_iter)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-
-    let mut child = match command.spawn() {
-        Ok(c) => c,
-        Err(e) => {
-            let msg = format!("Could not execute unit `{}`, path: {}, error: {:?}",
-                definition.name,
-                definition.path,
-                e.kind()
-            );
-
-            return Err(Error::new(msg));
+    pub fn to_str(&self) -> &'static str{
+        match self {
+            Operation::Check => "check",
+            Operation::Apply => "apply",
+            Operation::Rollback => "rollback",
+            Operation::Deps => "deps",
         }
-    };
+    }
+}
 
-    let status = match child.wait() {
-        Ok(s) => s,
-        Err(_) => {
-            let error = Error::new(format!("[{}] killed by external signal", definition.name));
-            return Err(error)
-        }
-    };
+pub struct Target {
+    executor_box: Box<dyn Executor>
+}
 
-    let mut stdout = String::new();
-    let mut stderr = String::new();
+impl Target {
+    pub fn try_new(adapter_name: &str) -> Result<Target, Error> {
+        let executor_box: Box<dyn Executor> = match adapter_name {
+            "local" => Box::new(Local::new()),
+            _ => {
+                let error_string = format!("Unknown adapter type: {}", adapter_name);
+                return Err(Error::new(error_string));
+            }
+        };
 
-    child
-        .stdout
-        .unwrap()
-        .read_to_string(&mut stdout)
-        .unwrap();
+        Ok(Target { executor_box: executor_box })
+    }
 
-    child
-        .stderr
-        .unwrap()
-        .read_to_string(&mut stderr)
-        .unwrap();
-
-    let exit_code = status.code().unwrap();
-
-    let execution = Execution {
-        unit_name: definition.name.clone(),
-        stdout: stdout,
-        stderr: stderr,
-        exit_code: exit_code
-    };
-
-    Ok(execution)
+    pub fn execute(&self, unit: &Instance, operation_name: &str) -> ExecutionResult {
+        let operation = Operation::from_str(operation_name)?;
+        self.executor_box.execute(unit, operation)
+    }
 }
