@@ -5,12 +5,10 @@ extern crate crypto;
 
 mod error;
 mod unit;
-mod loader;
 mod execution;
 mod resolver;
 mod engine;
 mod reporting;
-mod instance_cache;
 
 use engine::run;
 use reporting::Mode;

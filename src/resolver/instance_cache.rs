@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use crate::unit::{Instance, DefinitionRc, InstanceId};
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::loader::load_unit;
 use crate::error::Error;
+
+use super::loader::load_unit;
 
 pub type InstanceRc = Rc<RefCell<Instance>>;
 

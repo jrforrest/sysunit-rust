@@ -2,9 +2,13 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::unit::{Instance, RunState, ArgSet, InstanceId};
-use crate::instance_cache::InstanceCache;
 use crate::execution::execute;
 use crate::error::Error;
+
+mod instance_cache;
+mod loader;
+
+use self::instance_cache::InstanceCache;
 
 pub struct Resolver {
     pub ordered_instances: Vec<Rc<RefCell<Instance>>>,
