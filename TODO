@@ -28,3 +28,6 @@ FEATURES
 - .toml arguments
   - We can probably provide a full .toml via some file descriptor that
     units can choose to open and read if they wish to receive typed data
+
+CLEANUP
+- Error handling does a lot of repetitive Error instantiation

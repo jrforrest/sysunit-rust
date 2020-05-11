@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use crate::unit::{Instance, RunState, ArgSet, InstanceId};
 use crate::error::Error;
 use crate::execution::Target;
+use crate::operation::Operation;
 
 mod instance_cache;
 mod loader;
@@ -66,7 +67,7 @@ impl <'a> Resolver <'a> {
     }
 
     fn get_deps(&mut self, instance: &Instance) -> Result<Vec<Rc<RefCell<Instance>>>, Error> {
-        let execution_result = self.target.execute(instance, "deps")?;
+        let execution_result = self.target.execute(instance, Operation::Deps)?;
         let definition = Rc::clone(&instance.definition_rc);
 
         if execution_result.exit_code != 0 {

@@ -9,6 +9,8 @@ mod execution;
 mod resolver;
 mod engine;
 mod reporting;
+mod fs_util;
+mod operation;
 
 use engine::run;
 use reporting::Mode;
@@ -33,7 +35,6 @@ fn main() {
             .value_name("ADAPTER_NAME")
             .help("specifies the adapter with which to execute")
             .takes_value(true)
-            .possible_values(&["local"])
             .required(false)
         )
         .get_matches();
