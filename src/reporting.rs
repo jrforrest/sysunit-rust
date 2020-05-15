@@ -1,4 +1,6 @@
 use crate::execution::Execution;
+use crate::operation::Operation;
+
 use colored::*;
 use unicode_truncate::UnicodeTruncateStr;
 
@@ -8,7 +10,7 @@ pub enum Mode {
     Minimal
 }
 
-pub fn report_execution(execution: &Execution, mode: Mode) {
+pub fn report_execution(execution: &Execution, mode: Mode, operation: Operation) {
     let unit_name_colored = if execution.success() {
         execution.unit_name.green()
     } else {
@@ -29,7 +31,7 @@ pub fn report_execution(execution: &Execution, mode: Mode) {
         }
     };
 
-    println!("[{}]{}", unit_name_colored, output_reporting)
+    println!("[{}|{}]{}", unit_name_colored, operation.to_str(), output_reporting)
 }
 
 pub fn prefix_lines(output: &str, prefix: &str) -> String {

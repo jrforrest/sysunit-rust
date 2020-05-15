@@ -87,7 +87,8 @@ impl ArgSet {
 pub struct Instance {
     pub definition_rc: DefinitionRc,
     pub run_state: RunState,
-    pub id: InstanceId
+    pub id: InstanceId,
+    pub application_state: Option<ApplicationState>
 }
 
 #[derive(Debug, Clone)]
@@ -97,12 +98,19 @@ pub enum RunState {
     Resolved
 }
 
+#[derive(Debug, Clone)]
+pub enum ApplicationState {
+    Applied,
+    NotApplied(String)
+}
+
 impl Instance {
     pub fn new(definition_rc: DefinitionRc, instance_id: InstanceId) -> Instance {
         return Instance {
             definition_rc: definition_rc,
             run_state: RunState::Init,
-            id: instance_id
+            id: instance_id,
+            application_state: None
         }
     }
 }
