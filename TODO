@@ -1,8 +1,4 @@
 FEATURES
-- Apply should only apply if check does not report presence
-  (?) What indicates presence here?  "applied/incomplete/missing" strings in STDOUT of unit?
-    - How about just "ok" for starters if its present, any other output means nothing is there
-
 - Test execution for directory units
   - Allow directory units to provide a `./test` executable which can
     assert that the unit has altered system state as expected

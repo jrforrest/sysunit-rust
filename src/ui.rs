@@ -1,8 +1,10 @@
 use crate::execution::Execution;
 use crate::operation::Operation;
+use crate::error::Error;
 
 use colored::*;
 use unicode_truncate::UnicodeTruncateStr;
+use rpassword::read_password_from_tty;
 
 #[derive(Clone, Copy)]
 pub enum Mode {
@@ -42,4 +44,11 @@ pub fn prefix_lines(output: &str, prefix: &str) -> String {
     }
     
     output_string
+}
+
+pub fn prompt_ssh_password(username: &str, host: &str) -> Result<String, Error> {
+    let prompt = format!("SSH Password {}@{}: ", username, host);
+
+    read_password_from_tty(Some(prompt.as_str()))
+        .map_err(|e| Error::new(format!("{}", e)))
 }

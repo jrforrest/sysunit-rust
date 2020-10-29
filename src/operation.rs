@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Operation {
     Check,
     Apply,

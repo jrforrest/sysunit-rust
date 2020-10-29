@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::execution::Target;
-use crate::reporting::{Mode, report_execution};
+use crate::ui::{Mode, report_execution};
 use crate::resolver::Resolver;
 use crate::operation::Operation;
 use crate::unit::{ApplicationState};
@@ -11,11 +11,12 @@ pub fn run(
     unit_name: &str, 
     operation_name: &str,
     args_str: &str,
-    adapter: &str,
+    target_url: Option<&str>,
+    adapter: Option<&str>,
     reporting_mode: Mode
 ) -> RunResult {
     let operation = Operation::from_str(operation_name)?;
-    let target = Target::try_new(adapter)?;
+    let target = Target::try_new(target_url, adapter)?;
     let mut resolver = Resolver::new(&target);
     resolver.resolve(unit_name, args_str)?;
 
@@ -63,7 +64,7 @@ impl <'a> Engine <'a> {
             .map(|rc| rc.borrow() )
             .filter(|i|
                 match &i.application_state {
-                    Some(ApplicationState::Applied) => true,
+                    Some(ApplicationState::NotApplied(_)) => true,
                     _ => false
                 }
             )
@@ -81,7 +82,7 @@ impl <'a> Engine <'a> {
             .map(|rc| rc.borrow())
             .filter(|i|
                 match i.application_state {
-                    Some(ApplicationState::NotApplied(_)) => true,
+                    Some(ApplicationState::Applied) => true,
                     _ => false
                 }
             )

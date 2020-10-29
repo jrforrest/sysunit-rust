@@ -7,17 +7,34 @@ use std::path::Path;
 use crate::unit::{Instance, DefinitionType};
 use crate::error::Error;
 
-use super::{Executor, Operation, Execution};
+use super::super::{Executor, Operation, Execution};
 
-pub struct Local;
+use url::Url;
+
+pub struct Local {
+    url: Option<Url>,
+}
 
 impl Local {
-    pub fn new() -> Local {
-        Local { }
+    pub fn new(url: Option<Url>) -> Local {
+        Local { url: url }
     }
 }
 
 impl Executor for Local {
+    fn init(&mut self) -> Result<(), Error> {
+        match self.url {
+            Some(ref url) => match url.host() {
+                None => Ok(()),
+                Some(other) => match other.to_string().as_str() {
+                    "localhost" => Ok(()),
+                    _ => Err(Error::new(format!("Can not operate on host: {}", other)))
+                }
+            },
+            None => Ok(())
+        }
+    }
+
     fn execute(&self, unit: &Instance, operation: Operation) -> Result<Execution, Error> {
         let definition = unit.definition_rc.clone();
         let mut command = match &definition.definition_type {

@@ -22,6 +22,10 @@ impl Adapter {
 }
 
 impl Executor for Adapter {
+    fn init(&mut self) -> Result<(), Error> {
+        Ok(())
+    }
+
     fn execute(&self, unit: &Instance, operation: Operation) -> ExecutionResult {
         let definition = unit.definition_rc.clone();
         let unit_path = &definition.path;
