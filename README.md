@@ -68,3 +68,12 @@ in subsequent unit executions having their behavior altered from intended.
 
 *SYSUNIT_PATH* may contain a colon-delimited list of directories which will
                be searched for unit executables or directories.
+
+## Testing
+
+- There's a docker_compose configuration provided with this project that runs
+  some minimal Alpine containers.
+- The ./test directory contains some files for provisioning of these containers
+  and running specs (via Ruby's serverspec) against them.
+- Use `dc run test` to run the primary integration specs against an alpine
+  container.

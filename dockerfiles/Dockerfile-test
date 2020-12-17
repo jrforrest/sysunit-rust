@@ -1,0 +1,3 @@
+FROM rust:1.48-alpine3.12
+RUN apk add --update musl-dev perl make ruby ruby-bundler bash 
+WORKDIR /sysunit

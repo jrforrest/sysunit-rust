@@ -197,10 +197,10 @@ fn auth(session: &mut Session, url: &Url) -> Result<(), Error> {
         v => v
     };
 
-    fn auth_via_agent(session: &mut Session, url: &Url, username: &str) -> BoxedResult<()> {
+    fn auth_via_agent(session: &mut Session, username: &str) -> BoxedResult<()> {
         let mut agent = session.agent().map_err(|e| Error::new(e.to_string()))?;
-        agent.connect().map_err(|e| Box::new(e))?;
-        agent.list_identities().map_err(|e| Box::new(e))?;
+        agent.connect()?;
+        agent.list_identities()?;
         let identities = agent.identities().map_err(|e| Box::new(e))?;
 
         for identity in identities {
@@ -230,7 +230,7 @@ fn auth(session: &mut Session, url: &Url) -> Result<(), Error> {
         }
     }
 
-    match auth_via_agent(session, url, username) {
+    match auth_via_agent(session, username) {
         Ok(_) => return Ok(()),
         Err(e) => info!("SSH agent auth to {:?} failed: {}", url, e)
     }

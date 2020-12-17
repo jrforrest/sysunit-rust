@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'serverspec'
+gem 'pry'
+
+# undocumented dependency of serverspec
+gem 'etc'

@@ -1,7 +1,6 @@
 use std::fmt;
 
 pub type BoxedResult<T> = Result<T, Box<dyn std::error::Error>>;
-pub type ErrorResult<T> = Result<T, Error>;
 
 #[derive(Debug, Clone)]
 pub struct Error {

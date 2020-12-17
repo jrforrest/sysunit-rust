@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -eu
+
+case "$1" in
+check)
+  if ( apk info | grep -q $package_name ); then
+    echo "ok"
+  fi
+;;
+apply) apk add $package_name && echo "installed $package_name";;
+rollback) apk remove $package_name;;
+esac

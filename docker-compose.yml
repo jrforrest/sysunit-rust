@@ -1,0 +1,32 @@
+---
+version: '3'
+
+volumes:
+  test_gems:
+  cargo_cache:
+
+services:
+  test:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile-test
+    volumes:
+      - ./:/sysunit
+      - ./test/ssh:/root/.ssh
+      - test_gems:/usr/local/bundle
+      - cargo_cache:/usr/local/cargo
+    environment:
+      SYSUNIT_PATH: /sysunit/units
+      GEM_HOME: /usr/local/bundle
+    links:
+      - ssh_host
+    command: "sh -c 'cd test && bin/test-sysunit'"
+
+  ssh_host:
+    volumes:
+      - ./test/ssh/sshd:/etc/ssh
+      - ./test/ssh:/root/.ssh
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile-ssh_host
+    command: /usr/sbin/sshd -D

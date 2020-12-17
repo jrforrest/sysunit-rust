@@ -27,19 +27,14 @@ impl Target {
         };
 
         let adapter_name = match adapter_name {
-            Some(n) => n.to_string(),
+            Some(n) => n,
             None => match parsed_url_option {
-                None => Err(Error::new(format!(
-                    "Adapter not specified and could not be inferred from URL"
-                ))),
-                Some(ref parsed_url) => {
-                    let scheme_string = parsed_url.scheme().to_string();
-                    Ok(scheme_string)
-                }
-            }?
+                None => "local",
+                Some(ref parsed_url) => parsed_url.scheme()
+            }
         };
 
-        let mut executor: Box<dyn Executor> = match adapter_name.as_str() {
+        let mut executor: Box<dyn Executor> = match adapter_name {
             "local" => Box::new(Local::new(parsed_url_option.clone())),
             "ssh" => Box::new(SSH::new(parsed_url_option.clone())),
             adapter_name => Box::new(Adapter::try_new(adapter_name)?),

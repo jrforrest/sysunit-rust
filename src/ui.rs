@@ -13,19 +13,19 @@ pub enum Mode {
 }
 
 pub fn report_execution(execution: &Execution, mode: Mode, operation: Operation) {
-    let unit_name_colored = if execution.success() {
-        execution.unit_name.green()
+    let (override_mode, unit_name_colored) = if execution.success() {
+        (mode, execution.unit_name.green())
     } else {
-        execution.unit_name.red()
+        (Mode::Full, execution.unit_name.red())
     };
 
-    let output_reporting = match mode {
+    let output_reporting = match override_mode {
         Mode::Full => 
             format!("\n{}\n{}",
                 prefix_lines(&execution.stdout, "1>"),
                 prefix_lines(&execution.stderr, "2>")),
         Mode::Minimal => {
-            let first_line = match execution.stdout.lines().into_iter().nth(0) {
+            let first_line = match execution.stdout.lines().into_iter().last() {
                 Some(s) => s,
                 None => ""
             };
@@ -40,7 +40,7 @@ pub fn prefix_lines(output: &str, prefix: &str) -> String {
     let mut output_string = String::new();
 
     for line in output.lines() {
-        output_string.push_str(&format!("{}{}", prefix, line));
+        output_string.push_str(&format!("{}{}\n", prefix, line));
     }
     
     output_string
