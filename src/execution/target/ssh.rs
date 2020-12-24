@@ -2,7 +2,6 @@ use super::super::{Executor, Operation, Execution};
 
 use crate::unit::Instance;
 use crate::error::{Error, BoxedResult};
-use crate::ui::prompt_ssh_password;
 
 use std::path::Path;
 use std::fs::{File};
@@ -10,8 +9,12 @@ use std::net::TcpStream;
 use std::io::prelude::*;
 
 use url::Url;
-use log::{debug, info};
+use log::debug;
 use ssh2::Session;
+
+mod auth;
+
+use auth::auth;
 
 macro_rules! wrap_error {
     ($format_string: literal, $error: expr) => {
@@ -187,58 +190,4 @@ impl StartedConnection {
     pub fn get_session(&self) -> &Session {
         &self.session
     }
-}
-
-fn auth(session: &mut Session, url: &Url) -> Result<(), Error> {
-    let username = match url.username() {
-        "" => return Err(
-            Error::new(format!("Target `{:?}` must specify a username", url))
-        ),
-        v => v
-    };
-
-    fn auth_via_agent(session: &mut Session, username: &str) -> BoxedResult<()> {
-        let mut agent = session.agent().map_err(|e| Error::new(e.to_string()))?;
-        agent.connect()?;
-        agent.list_identities()?;
-        let identities = agent.identities().map_err(|e| Box::new(e))?;
-
-        for identity in identities {
-            match agent.userauth(username, &identity) {
-                Err(_) => (),
-                Ok(_) => return Ok(())
-            }
-        }
-
-        return Err(Box::new(Error::new(format!("No identiy in agent could authenticate"))))
-    }
-
-    fn auth_via_password(
-        session: &mut Session,
-        url: &Url,
-        username: &str
-    ) -> BoxedResult<()> {
-        let host = match url.host() {
-            None => return Err(Box::new(Error::new(format!("URL {} must specify a host!", url)))),
-            Some(x) => x.to_string()
-        };
-
-        let password = prompt_ssh_password(username, &host)?;
-        match session.userauth_password(username, &password) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(Box::new(e))
-        }
-    }
-
-    match auth_via_agent(session, username) {
-        Ok(_) => return Ok(()),
-        Err(e) => info!("SSH agent auth to {:?} failed: {}", url, e)
-    }
-
-    match auth_via_password(session, url, username) {
-        Ok(_) => return Ok(()),
-        Err(e) => info!("SSH password auth to {:?} failed: {}", url, e)
-    }
-
-    Err(Error::new(format!("SSH Agent and Password auth to {:?} failed", url)))
 }
