@@ -11,14 +11,27 @@ mod loader;
 
 use self::instance_cache::InstanceCache;
 
-pub struct Resolver <'a> {
-    pub ordered_instances: Vec<Rc<RefCell<Instance>>>,
+pub type InstanceVec = Vec<Rc<RefCell<Instance>>>;
+
+pub fn resolve(
+    target: &mut Target,
+    unit_name: &str,
+    args_str: &str
+) -> Result<InstanceVec, Error> {
+    let mut resolver = Resolver::new(target);
+    resolver.resolve(unit_name, args_str)?;
+
+    Ok(resolver.ordered_instances)
+}
+
+struct Resolver <'a> {
+    pub ordered_instances: InstanceVec,
     instance_cache: InstanceCache,
-    target: &'a Target,
+    target: &'a mut Target,
 }
 
 impl <'a> Resolver <'a> {
-    pub fn new(target: &'a Target) -> Resolver<'a> {
+    pub fn new(target: &'a mut Target) -> Resolver<'a> {
         let instance_cache = InstanceCache::new();
 
         Resolver {

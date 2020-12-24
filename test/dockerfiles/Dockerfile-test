@@ -1,0 +1,6 @@
+FROM rust:1.48-alpine3.12
+RUN apk add --update musl-dev perl make ruby ruby-bundler bash openssh-client
+RUN mkdir /root/.ssh && chmod 0700 /root/.ssh
+ADD config/id_rsa /root/.ssh/
+RUN chmod 0600 /root/.ssh/id_rsa
+WORKDIR /sysunit

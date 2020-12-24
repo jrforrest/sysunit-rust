@@ -1,7 +1,6 @@
-use std::process::Command;
-use std::process::Stdio;
-use std::io::Read;
+use std::process::{Command, Stdio};
 use std::fs;
+use std::str;
 use std::path::Path;
 
 use crate::unit::{Instance, DefinitionType};
@@ -35,7 +34,7 @@ impl Executor for Local {
         }
     }
 
-    fn execute(&self, unit: &Instance, operation: Operation) -> Result<Execution, Error> {
+    fn execute(&mut self, unit: &Instance, operation: Operation) -> Result<Execution, Error> {
         let definition = unit.definition_rc.clone();
         let mut command = match &definition.definition_type {
             DefinitionType::Executable => Command::new(&definition.path),
@@ -62,7 +61,7 @@ impl Executor for Local {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        let mut child = match command.spawn() {
+        let child = match command.spawn() {
             Ok(c) => c,
             Err(e) => {
                 let msg = format!("Could not execute unit `{}`, path: {}, error: {:?}",
@@ -75,35 +74,29 @@ impl Executor for Local {
             }
         };
 
-        let status = match child.wait() {
-            Ok(s) => s,
-            Err(_) => {
-                let error = Error::new(format!("[{}] killed by external signal", definition.name));
-                return Err(error)
-            }
+        let external_signal_error = Error::new(format!(
+            "[{}] killed by external signal", definition.name
+        ));
+
+        let result = child.wait_with_output().map_err(|_| external_signal_error.clone() )?;
+
+        let exit_code = match result.status.code() {
+            Some(c) => c,
+            None => return Err(external_signal_error.clone())
         };
 
-        let mut stdout = String::new();
-        let mut stderr = String::new();
+        fn stringify_bytes(bytes: Vec<u8>, stream_name: &str) -> Result<String, Error> {
+            let chars = str::from_utf8(&bytes).map_err(|_e|
+                Error::new(format!("Invalid UTF sequence in stream: {}", stream_name))
+            )?;
 
-        child
-            .stdout
-            .unwrap()
-            .read_to_string(&mut stdout)
-            .unwrap();
-
-        child
-            .stderr
-            .unwrap()
-            .read_to_string(&mut stderr)
-            .unwrap();
-
-        let exit_code = status.code().unwrap();
+            Ok(chars.to_string())
+        }
 
         let execution = Execution {
             unit_name: definition.name.clone(),
-            stdout: stdout,
-            stderr: stderr,
+            stdout: stringify_bytes(result.stdout, "stdout")?,
+            stderr: stringify_bytes(result.stderr, "stderr")?,
             exit_code: exit_code
         };
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
 case $1 in
-  apply) echo "dir unit my dude!!";;
+  apply) sldkfji;;
   deps) echo hi;;
 esac

@@ -45,7 +45,7 @@ impl Target {
         Ok(Target { executor: executor })
     }
 
-    pub fn execute(&self, unit: &Instance, operation: Operation) -> ExecutionResult {
+    pub fn execute(&mut self, unit: &Instance, operation: Operation) -> ExecutionResult {
         self.executor.execute(unit, operation)
     }
 }

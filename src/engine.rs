@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::execution::Target;
 use crate::ui::{Mode, report_execution};
-use crate::resolver::Resolver;
+use crate::resolver::{resolve, InstanceVec};
 use crate::operation::Operation;
 use crate::unit::{ApplicationState};
 
@@ -16,13 +16,13 @@ pub fn run(
     reporting_mode: Mode
 ) -> RunResult {
     let operation = Operation::from_str(operation_name)?;
-    let target = Target::try_new(target_url, adapter)?;
-    let mut resolver = Resolver::new(&target);
-    resolver.resolve(unit_name, args_str)?;
+    let mut target = Target::try_new(target_url, adapter)?;
 
-    let engine = Engine {
-        resolver: &resolver,
-        target: &target,
+    let ordered_unit_instances = resolve(&mut target, unit_name, args_str)?;
+
+    let mut engine = Engine {
+        ordered_instances: ordered_unit_instances,
+        target: &mut target,
         operation: operation,
         reporting_mode: reporting_mode
     };
@@ -34,13 +34,13 @@ pub fn run(
 
 struct Engine <'a> {
     reporting_mode: Mode,
-    resolver: &'a Resolver<'a>,
-    target: &'a Target,
+    ordered_instances: InstanceVec,
+    target: &'a mut Target,
     operation: Operation,
 }
 
 impl <'a> Engine <'a> {
-    pub fn run(&self) -> RunResult {
+    pub fn run(&mut self) -> RunResult {
         match self.operation {
             Operation::Apply => {
                 self.check(false)?;
@@ -59,8 +59,8 @@ impl <'a> Engine <'a> {
         }
     }
 
-    pub fn apply(&self) -> RunResult {
-        for instance in self.resolver.ordered_instances.iter()
+    pub fn apply(&mut self) -> RunResult {
+        for instance in self.ordered_instances.iter()
             .map(|rc| rc.borrow() )
             .filter(|i|
                 match &i.application_state {
@@ -77,8 +77,8 @@ impl <'a> Engine <'a> {
         Ok(())
     }
 
-    pub fn rollback(&self) -> RunResult {
-        for instance in self.resolver.ordered_instances.iter()
+    pub fn rollback(&mut self) -> RunResult {
+        for instance in self.ordered_instances.iter()
             .map(|rc| rc.borrow())
             .filter(|i|
                 match i.application_state {
@@ -95,8 +95,8 @@ impl <'a> Engine <'a> {
         Ok(())
     }
 
-    pub fn check(&self, report: bool) -> RunResult {
-        for instance in self.resolver.ordered_instances.iter() {
+    pub fn check(&mut self, report: bool) -> RunResult {
+        for instance in self.ordered_instances.iter() {
             let run_result = self.target.execute(&instance.borrow(), Operation::Check)?;
             let output_str = run_result.stdout.trim_end();
 

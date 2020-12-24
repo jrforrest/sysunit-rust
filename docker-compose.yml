@@ -8,11 +8,10 @@ volumes:
 services:
   test:
     build:
-      context: ./dockerfiles
-      dockerfile: Dockerfile-test
+      context: ./test
+      dockerfile: dockerfiles/Dockerfile-test
     volumes:
       - ./:/sysunit
-      - ./test/ssh:/root/.ssh
       - test_gems:/usr/local/bundle
       - cargo_cache:/usr/local/cargo
     environment:
@@ -23,10 +22,7 @@ services:
     command: "sh -c 'cd test && bin/test-sysunit'"
 
   ssh_host:
-    volumes:
-      - ./test/ssh/sshd:/etc/ssh
-      - ./test/ssh:/root/.ssh
     build:
-      context: ./dockerfiles
-      dockerfile: Dockerfile-ssh_host
+      context: ./test/
+      dockerfile: dockerfiles/Dockerfile-ssh_host
     command: /usr/sbin/sshd -D

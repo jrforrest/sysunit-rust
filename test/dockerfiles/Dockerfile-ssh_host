@@ -1,0 +1,8 @@
+FROM alpine:3.12
+RUN apk add --update openssh-server openssh-client
+
+RUN mkdir /root/.ssh && chmod 0700 /root/.ssh
+
+ADD config/authorized_keys /root/.ssh/
+ADD config/sshd /etc/ssh
+RUN echo "root:$(</dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32})" | chpasswd

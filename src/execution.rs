@@ -25,5 +25,5 @@ pub type ExecutionResult = Result<Execution, Error>;
 
 pub trait Executor {
     fn init(&mut self) -> Result<(), Error>;
-    fn execute(&self, unit: &Instance, operation: Operation) -> ExecutionResult;
+    fn execute(&mut self, unit: &Instance, operation: Operation) -> ExecutionResult;
 }

@@ -1,6 +1,16 @@
+#![macro_use]
+
 use std::fmt;
 
 pub type BoxedResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+#[macro_export]
+
+macro_rules! wrap_error {
+    ($format_string: literal, $error: expr) => {
+        Error::new(format!($format_string, $error.to_string()));
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Error {

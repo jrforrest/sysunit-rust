@@ -17,4 +17,8 @@ pub mod unix {
 
         metadata.is_file() && (permissions.mode() & 0o111 != 0)
     }
+
+    pub fn get_local_permissions(metadata: &Metadata) -> u32 {
+        metadata.permissions().mode()
+    }
 }

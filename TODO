@@ -3,10 +3,6 @@ FEATURES
   - Allow directory units to provide a `./test` executable which can
     assert that the unit has altered system state as expected
 
-- Adapters for specifying remote targets
-  - Runing with something like --target=ssh://root@git.jackforrest.codes should
-    allow managing remote systems with units located on the origin machine.
-
 - Manifest Units
   - Units that only have dependencies can be expressed in a .toml file
 
@@ -25,5 +21,10 @@ FEATURES
   - We can probably provide a full .toml via some file descriptor that
     units can choose to open and read if they wish to receive typed data
 
+- Multiple Targets
+
 CLEANUP
+
 - Error handling does a lot of repetitive Error instantiation
+
+- Better logging throughout that can be enabled with a SYSUNIT_LOG var
